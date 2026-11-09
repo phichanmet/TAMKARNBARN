@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="th" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web For Study - ระบบจัดการการเรียนและการบ้าน</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font - Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        /* Custom Scrollbar for compact feel */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen pb-12 transition-colors duration-200">
+   
+        <!-- Navbar & Header Summary -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20 shadow-sm transition-colors duration-200">
+        <div class="max-w-5xl mx-auto px-3 py-3">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-600 text-white p-2 rounded-xl text-lg font-bold shadow-md shadow-blue-200 dark:shadow-none">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 leading-none">Web For Study</h1>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">ระบบติดตามรายวิชาและการบ้าน</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <!-- Theme Toggle Button -->
+                    <button onclick="toggleTheme()" id="theme-toggle-btn" title="สลับธีม สว่าง/มืด" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-amber-300 text-xs p-2 rounded-lg transition active:scale-95 flex items-center justify-center">
+                        <i id="theme-icon" class="fa-solid fa-sun text-sm"></i>
+                    </button>
+                    <button onclick="openCourseModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-plus text-[10px]"></i> <span class="hidden sm:inline">เพิ่ม</span>วิชา
+                    </button>
+                    <button onclick="openTaskModalGlobal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-list-check text-[10px]"></i> <span class="hidden sm:inline">เพิ่ม</span>งาน
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats Bar -->
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-3 mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
+                <div class="bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 rounded-xl p-2 text-center">
+                    <span class="block text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium">GPAX รวม</span>
+                    <span id="stat-gpax" class="text-sm sm:text-lg font-bold text-blue-700 dark:text-blue-300">0.00</span>
+                </div>
+                <div class="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 rounded-xl p-2 text-center">
+                    <span class="block text-[10px] sm:text-xs text-indigo-600 dark:text-indigo-400 font-medium">หน่วยกิต</span>
+                    <span id="stat-credits" class="text-sm sm:text-lg font-bold text-indigo-700 dark:text-indigo-300">0</span>
+                </div>
+                <div class="bg-amber-50/70 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/40 rounded-xl p-2 text-center">
+                    <span class="block text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-medium">งานค้างอยู่</span>
+                    <span id="stat-pending" class="text-sm sm:text-lg font-bold text-amber-700 dark:text-amber-300">0</span>
+                </div>
+                <div class="bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/40 rounded-xl p-2 text-center">
+                    <span class="block text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-medium">เสร็จแล้ว</span>
+                    <span id="stat-completed" class="text-sm sm:text-lg font-bold text-emerald-700 dark:text-emerald-300">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+        <!-- Main Content Container -->
+    <main class="max-w-5xl mx-auto px-2.5 sm:px-4 mt-4">
+        
+        <!-- Controls & Filters Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-200">
+            <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-xs"></i>
+                <input type="text" id="search-input" oninput="renderCourses()" placeholder="ค้นหารายวิชา..." class="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="flex items-center justify-between sm:justify-end gap-2 text-xs">
+                <select id="filter-type" onchange="renderCourses()" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1 font-medium text-xs focus:outline-none">
+                    <option value="all">ทุกประเภทวิชา</option>
+                    <option value="core">วิชาพื้นฐาน</option>
+                    <option value="elective">วิชาเพิ่มเติม</option>
+                </select>
+                <span id="course-count-badge" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[11px] font-semibold">0 วิชา</span>
+            </div>
+        </div>
+
+        <!-- Strict 2-Column Grid layout across all screen sizes (grid-cols-2) -->
+        <div id="course-grid" class="grid grid-cols-2 gap-2 sm:gap-3.5">
+            <!-- Dynamic Cards Loaded via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 mt-2 transition-colors duration-200">
+            <i class="fa-solid fa-book-open text-4xl text-slate-300 dark:text-slate-600 mb-2"></i>
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-300">ยังไม่มีข้อมูลรายวิชา</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">กดปุ่ม "+ เพิ่มวิชา" เพื่อเริ่มต้นเพิ่มข้อมูล</p>
+            <button onclick="openCourseModal()" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition">
+                + เพิ่มวิชาใหม่
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal: Course Add/Edit -->
+    <div id="course-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-4 shadow-xl border border-slate-100 dark:border-slate-700 transform transition-all text-slate-800 dark:text-slate-100">
+            <div class="flex justify-between items-center pb-2.5 border-b border-slate-100 dark:border-slate-700">
+                <h3 id="course-modal-title" class="font-bold text-slate-800 dark:text-slate-100 text-sm">เพิ่มรายวิชาใหม่</h3>
+                <button onclick="closeCourseModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <form id="course-form" onsubmit="saveCourse(event)" class="space-y-3 mt-3 text-xs">
+                <input type="hidden" id="course-id">
+                <div>
+                    <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">ชื่อวิชา <span class="text-red-500">*</span></label>
+                    <input type="text" id="course-name" placeholder="เช่น ฟิสิกส์ 1, ภาษาไทยพื้นฐาน" required class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">ประเภทวิชา</label>
+                        <select id="course-type" class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            <option value="core">วิชาพื้นฐาน</option>
+                            <option value="elective">วิชาเพิ่มเติม</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">กลุ่มสาระฯ</label>
+                        <select id="course-category" class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            <option value="คำนวณ">คำนวณ</option>
+                            <option value="วิท">วิท</option>
+                            <option value="ภาษา">ภาษา</option>
+                            <option value="สังคมฯ">สังคมฯ</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">หน่วยกิต</label>
+                        <input type="number" step="0.5" min="0.5" max="10" id="course-credits" value="1.5" required class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">เกรดที่ได้</label>
+                        <select id="course-grade" class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            <option value="pending">ยังไม่ระบุ (N/A)</option>
+                            <option value="4.0">4.0</option>
+                            <option value="3.5">3.5</option>
+                            <option value="3.0">3.0</option>
+                            <option value="2.5">2.5</option>
+                            <option value="2.0">2.0</option>
+                            <option value="1.5">1.5</option>
+                            <option value="1.0">1.0</option>
+                            <option value="0.0">0.0</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">ครูผู้สอน</label>
+                    <input type="text" id="course-teacher" placeholder="เช่น ครู... " class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="flex justify-between items-center pt-2">
+                    <button type="button" id="delete-course-btn" onclick="deleteCourse()" class="hidden px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-medium">ลบวิชานี้</button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeCourseModal()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium">ยกเลิก</button>
+                        <button type="submit" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm">บันทึกวิชา</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal: Task Add/Edit -->
+    <div id="task-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-4 shadow-xl border border-slate-100 dark:border-slate-700 transform transition-all text-slate-800 dark:text-slate-100">
+            <div class="flex justify-between items-center pb-2.5 border-b border-slate-100 dark:border-slate-700">
+                <h3 id="task-modal-title" class="font-bold text-slate-800 dark:text-slate-100 text-sm">งานใหม่ / การบ้านใหม่</h3>
+                <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <form id="task-form" onsubmit="saveTask(event)" class="space-y-3 mt-3 text-xs">
+                <input type="hidden" id="task-id">
+                <div>
+                    <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">วิชาที่สั่งงาน <span class="text-red-500">*</span></label>
+                    <select id="task-course-id" required class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                        <!-- Options generated dynamically -->
+                    </select>
+                    <p id="task-course-locked-hint" class="hidden text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium"><i class="fa-solid fa-lock text-[9px]"></i> ล็อกวิชาอัตโนมัติเนื่องจากเพิ่มจาก Inspector</p>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">หัวข้องาน / การบ้าน <span class="text-red-500">*</span></label>
+                    <input type="text" id="task-title" placeholder="เช่น ทำแบบฝึกหัด บทที่ 2 ข้อ 1-10" required class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">กำหนดส่ง (Optional)</label>
+                        <input type="date" id="task-due" class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">ระดับความสำคัญ</label>
+                        <select id="task-priority" class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            <option value="low">ไม่รีบ</option>
+                            <option value="normal" selected>ปกติ</option>
+                            <option value="high">รีบ</option>
+                            <option value="urgent">ต้องส่งเลย</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">รายละเอียดเพิ่มเติม</label>
+                    <textarea id="task-desc" rows="2" placeholder="รายละเอียดของงาน ลิ้งก์ หรือหมายเหตุ..." class="w-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeTaskModal()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm">บันทึกงาน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Inspector Modal (🔍 หน้าต่างตรวจสอบรายวิชา) -->
+    <div id="inspector-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2.5 sm:p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden transform transition-all text-slate-800 dark:text-slate-100">
+            <!-- Modal Header -->
+            <div class="p-3.5 sm:p-4 bg-slate-900 dark:bg-slate-950 text-white flex justify-between items-start">
+                <div class="pr-4">
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span id="insp-badge-type" class="text-[10px] px-2 py-0.5 rounded font-medium"></span>
+                        <span id="insp-badge-cat" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded"></span>
+                    </div>
+                    <h2 id="insp-title" class="text-base sm:text-lg font-bold text-white leading-tight"></h2>
+                    <p id="insp-sub" class="text-slate-400 text-xs mt-0.5"></p>
+                </div>
+                <button onclick="closeInspectorModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Sub-bar Actions & Filters -->
+            <div class="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <!-- Status Filter Tabs -->
+                <div class="flex bg-slate-200/80 dark:bg-slate-700 p-0.5 rounded-lg font-medium text-[11px]">
+                    <button id="filter-btn-pending" onclick="setInspectorFilter('pending')" class="px-2.5 py-1 rounded-md transition font-semibold">
+                        ยังไม่เสร็จ (<span id="insp-count-pending">0</span>)
+                    </button>
+                    <button id="filter-btn-completed" onclick="setInspectorFilter('completed')" class="px-2.5 py-1 rounded-md transition font-semibold">
+                        เสร็จแล้ว (<span id="insp-count-completed">0</span>)
+                    </button>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center gap-1.5 ml-auto">
+                    <button id="batch-delete-btn" onclick="deleteSelectedTasks()" class="hidden bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 text-[11px] px-2 py-1 rounded-md font-semibold transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can text-[10px]"></i> ลบรายการที่เลือก (<span id="selected-count">0</span>)
+                    </button>
+                    <button onclick="openTaskModalFromInspector()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded-md font-medium shadow-sm transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus text-[10px]"></i> เพิ่มงานวิชานี้
+                    </button>
+                </div>
+            </div>
+
+            <!-- Select All Header Bar -->
+            <div id="select-all-container" class="px-4 py-1.5 bg-slate-100/70 dark:bg-slate-700/40 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAllTasks(this.checked)" class="rounded text-blue-600 focus:ring-0 w-3.5 h-3.5 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+                    <span>เลือกทั้งหมด</span>
+                </label>
+                <span id="insp-filter-label" class="font-medium text-slate-400 dark:text-slate-500">รายการงาน</span>
+            </div>
+
+            <!-- Task List Container -->
+            <div id="inspector-task-list" class="p-3 sm:p-4 overflow-y-auto flex-1 space-y-2 min-h-[220px] max-h-[400px]">
+                <!-- Dynamic Tasks Inserted Here -->
+            </div>
+            
+            <!-- Footer Info -->
+            <div class="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 text-xs flex justify-between items-center text-slate-500 dark:text-slate-400">
+                <span class="text-[11px]">คลิกกล่องข้อความเพื่อสลับสถานะ | คลิก <i class="fa-solid fa-pen text-[10px]"></i> เพื่อแก้ไข</span>
+                <button onclick="closeInspectorModal()" class="px-3 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 dark:bg-slate-700 text-white border border-slate-700 dark:border-slate-600 px-3.5 py-2 rounded-xl text-xs shadow-lg flex items-center gap-2 z-50 transform translate-y-20 opacity-0 transition-all duration-300">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-msg">บันทึกข้อมูลเรียบร้อย</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data Models
+        let courses = [];
+        let tasks = [];
+        let currentTheme = 'light';
+        
+        // Active Inspector State
+        let activeInspectorCourseId = null;
+        let inspectorFilter = 'pending'; // 'pending' | 'completed'
+        let selectedTaskIds = new Set();
+        let openedTaskModalFromInspector = false;
+
+        // --- App Initialization ---
+        window.onload = function() {
+            initTheme();
+            loadFromLocalStorage();
+            renderCourses();
+            updateDashboardStats();
+        };
+
+        // --- Theme System ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                currentTheme = savedTheme;
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                currentTheme = 'dark';
+            } else {
+                currentTheme = 'light';
+            }
+            applyTheme(currentTheme);
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', currentTheme);
+            applyTheme(currentTheme);
+            showToast(currentTheme === 'dark' ? 'เปลี่ยนเป็นโหมดกลางคืน 🌙' : 'เปลี่ยนเป็นโหมดกลางวัน ☀️');
+        }
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                html.classList.remove('light');
+                if (icon) icon.className = 'fa-solid fa-moon text-amber-300 text-sm';
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                if (icon) icon.className = 'fa-solid fa-sun text-amber-500 text-sm';
+            }
+        }
+
+        // --- Persistence (LocalStorage) ---
+        function saveToLocalStorage() {
+            localStorage.setItem('wfs_courses', JSON.stringify(courses));
+            localStorage.setItem('wfs_tasks', JSON.stringify(tasks));
+            updateDashboardStats();
+        }
+
+        function loadFromLocalStorage() {
+            const savedCourses = localStorage.getItem('wfs_courses');
+            const savedTasks = localStorage.getItem('wfs_tasks');
+
+            if (savedCourses) {
+                courses = JSON.parse(savedCourses);
+            } else {
+                courses = [];
+            }
+
+            if (savedTasks) {
+                tasks = JSON.parse(savedTasks);
+            } else {
+                tasks = [];
+            }
+        }
+    
+    // --- Calculations & Dashboard Stats ---
+        function updateDashboardStats() {
+            let totalEarnedCredits = 0;
+            let weightedGradeSum = 0;
+
+            courses.forEach(c => {
+                const credits = parseFloat(c.credits) || 0;
+                if (c.grade !== 'pending') {
+                    const gradeVal = parseFloat(c.grade);
+                    if (!isNaN(gradeVal)) {
+                        totalEarnedCredits += credits;
+                        weightedGradeSum += (gradeVal * credits);
+                    }
+                }
+            });
+
+            const gpax = totalEarnedCredits > 0 ? (weightedGradeSum / totalEarnedCredits).toFixed(2) : '0.00';
+            
+            const pendingTasks = tasks.filter(t => !t.completed).length;
+            const completedTasks = tasks.filter(t => t.completed).length;
+
+            document.getElementById('stat-gpax').innerText = gpax;
+            document.getElementById('stat-credits').innerText = totalEarnedCredits.toFixed(1);
+            document.getElementById('stat-pending').innerText = pendingTasks;
+            document.getElementById('stat-completed').innerText = completedTasks;
+        }
+
+        // --- Render Course Grid ---
+        function renderCourses() {
+            const grid = document.getElementById('course-grid');
+            const emptyState = document.getElementById('empty-state');
+            const searchKeyword = document.getElementById('search-input').value.toLowerCase().trim();
+            const typeFilter = document.getElementById('filter-type').value;
+
+            // Filter & Sort Courses (Pinned First)
+            let filtered = courses.filter(c => {
+                const matchesSearch = c.name.toLowerCase().includes(searchKeyword);
+                const matchesType = typeFilter === 'all' || c.type === typeFilter;
+                return matchesSearch && matchesType;
+            });
+
+            filtered.sort((a, b) => (b.pinned === a.pinned) ? 0 : b.pinned ? 1 : -1);
+
+            document.getElementById('course-count-badge').innerText = `${filtered.length} วิชา`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = '';
+
+            filtered.forEach(course => {
+                const courseTasks = tasks.filter(t => t.courseId === course.id);
+                const pendingCount = courseTasks.filter(t => !t.completed).length;
+                
+                const card = document.createElement('div');
+                card.className = `bg-white dark:bg-slate-800 rounded-xl border ${course.pinned ? 'border-amber-300 dark:border-amber-500/60 ring-1 ring-amber-200/60 dark:ring-amber-500/30 shadow-sm' : 'border-slate-200 dark:border-slate-700'} p-2.5 sm:p-3 flex flex-col justify-between hover:shadow-md transition duration-200 relative group`;
+
+                // Type Badge Styling
+                const isCore = course.type === 'core';
+                const typeBadgeClass = isCore 
+                    ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' 
+                    : 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                const typeBadgeText = isCore ? 'พื้นฐาน' : 'เพิ่มเติม';
+
+                // Grade Display Tag
+                let gradeDisplay = course.grade === 'pending' ? 'N/A' : parseFloat(course.grade).toFixed(1);
+                let gradeClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600';
+                if (course.grade !== 'pending') {
+                    const g = parseFloat(course.grade);
+                    if (g >= 3.5) gradeClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+                    else if (g >= 2.5) gradeClass = 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+                    else gradeClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+                }
+                
+                card.innerHTML = `
+                    <div>
+                        <!-- Header Row: Pin & Category -->
+                        <div class="flex items-center justify-between gap-1 mb-1">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded border ${typeBadgeClass} font-medium">${typeBadgeText}</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="togglePinCourse('${course.id}')" title="ปักหมุดวิชาโปรด" class="text-xs ${course.pinned ? 'text-amber-400 dark:text-amber-300' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'} transition p-0.5">
+                                    <i class="fa-${course.pinned ? 'solid' : 'regular'} fa-star"></i>
+                                </button>
+                                <button onclick="openCourseModal('${course.id}')" title="แก้ไขวิชา" class="text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 text-xs">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Course Title -->
+                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-snug line-clamp-1" title="${escapeHtml(course.name)}">
+                            ${escapeHtml(course.name)}
+                        </h3>
+
+                        <!-- Badges: Category & Credits -->
+                        <div class="flex flex-wrap items-center gap-1 mt-1.5">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">${escapeHtml(course.category)}</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-medium">${course.credits} หน่วยกิต</span>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer: Stats & Inspector Trigger -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/70 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border ${gradeClass}">
+                                ${gradeDisplay}
+                            </span>
+                            ${pendingCount > 0 
+                                ? `<span class="bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-300 border border-red-100 dark:border-red-900/40 text-[10px] px-1.5 py-0.5 rounded-full font-semibold"><i class="fa-regular fa-clock text-[9px]"></i> ${pendingCount} งาน</span>` 
+                                : `<span class="text-slate-400 dark:text-slate-500 text-[10px]"><i class="fa-solid fa-check text-emerald-500"></i> เรียบร้อย</span>`}
+                        </div>
+                        
+                        <!-- Inspector Magnifying Glass Button (🔍) -->
+                        <button onclick="openInspectorModal('${course.id}')" title="ตรวจสอบรายวิชา" class="bg-slate-100 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-300 p-1.5 rounded-lg transition text-xs shadow-none">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- Pin Course Toggle ---
+        function togglePinCourse(id) {
+            const course = courses.find(c => c.id === id);
+            if (course) {
+                course.pinned = !course.pinned;
+                saveToLocalStorage();
+                renderCourses();
+                showToast(course.pinned ? 'ปักหมุดวิชาโปรดแล้ว ⭐' : 'ยกเลิกการปักหมุด');
+            }
+        }
+
+        // --- Course Modal Logic ---
+        function openCourseModal(editId = null) {
+            const modal = document.getElementById('course-modal');
+            const form = document.getElementById('course-form');
+            const title = document.getElementById('course-modal-title');
+            const deleteBtn = document.getElementById('delete-course-btn');
+
+            form.reset();
+            if (editId) {
+                const c = courses.find(x => x.id === editId);
+                if (c) {
+                    title.innerText = 'แก้ไขรายวิชา';
+                    document.getElementById('course-id').value = c.id;
+                    document.getElementById('course-name').value = c.name;
+                    document.getElementById('course-type').value = c.type;
+                    document.getElementById('course-category').value = c.category;
+                    document.getElementById('course-credits').value = c.credits;
+                    document.getElementById('course-grade').value = c.grade;
+                    document.getElementById('course-teacher').value = c.teacher || '';
+                    deleteBtn.classList.remove('hidden');
+                }
+            } else {
+                title.innerText = 'เพิ่มรายวิชาใหม่';
+                document.getElementById('course-id').value = '';
+                deleteBtn.classList.add('hidden');
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeCourseModal() {
+            document.getElementById('course-modal').classList.add('hidden');
+        }
+
+        function saveCourse(e) {
+            e.preventDefault();
+            const id = document.getElementById('course-id').value;
+            const name = document.getElementById('course-name').value.trim();
+            const type = document.getElementById('course-type').value;
+            const category = document.getElementById('course-category').value;
+            const credits = parseFloat(document.getElementById('course-credits').value) || 1.0;
+            const grade = document.getElementById('course-grade').value;
+            const teacher = document.getElementById('course-teacher').value.trim();
+
+            if (id) {
+                // Edit existing
+                const index = courses.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    courses[index] = { ...courses[index], name, type, category, credits, grade, teacher };
+                    showToast('อัปเดตข้อมูลวิชาเรียบร้อย');
+                }
+            } else {
+                // Create new
+                const newCourse = {
+                    id: 'c_' + Date.now(),
+                    name, type, category, credits, grade, teacher,
+                    pinned: false
+                };
+                courses.push(newCourse);
+                showToast('เพิ่มวิชาใหม่เรียบร้อยแล้ว');
+            }
+
+            saveToLocalStorage();
+            renderCourses();
+            closeCourseModal();
+        }
+
+        function deleteCourse() {
+            const id = document.getElementById('course-id').value;
+            if (!id) return;
+            
+            // Delete associated tasks
+            tasks = tasks.filter(t => t.courseId !== id);
+            courses = courses.filter(c => c.id !== id);
+            
+            saveToLocalStorage();
+            renderCourses();
+            closeCourseModal();
+            showToast('ลบวิชาเรียบร้อยแล้ว');
+        }
+
+        // --- Task Modal Logic ---
+        function populateCourseDropdown(selectedId = null, lockDropdown = false) {
+            const select = document.getElementById('task-course-id');
+            const hint = document.getElementById('task-course-locked-hint');
+            select.innerHTML = '';
+            
+            if (courses.length === 0) {
+                select.innerHTML = '<option value="">-- กรุณาเพิ่มวิชาก่อน --</option>';
+                select.disabled = true;
+                return;
+            }
+
+            courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.name;
+                if (c.id === selectedId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            select.disabled = lockDropdown;
+            if (lockDropdown) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function openTaskModalGlobal() {
+            if (courses.length === 0) {
+                showToast('กรุณาเพิ่มวิชาอย่างน้อย 1 วิชาเป็นอันดับแรก', true);
+                openCourseModal();
+                return;
+            }
+            openedTaskModalFromInspector = false;
+            openTaskModal(null, false);
+        }
+
+        function openTaskModalFromInspector() {
+            openedTaskModalFromInspector = true;
+            openTaskModal(activeInspectorCourseId, true);
+        }
+
+        function openTaskModal(preselectedCourseId = null, isLocked = false, editTaskId = null) {
+            const modal = document.getElementById('task-modal');
+            const form = document.getElementById('task-form');
+            const title = document.getElementById('task-modal-title');
+
+            form.reset();
+            
+            if (editTaskId) {
+                const t = tasks.find(x => x.id === editTaskId);
+                if (t) {
+                    title.innerText = 'แก้ไขการบ้าน / งาน';
+                    document.getElementById('task-id').value = t.id;
+                    document.getElementById('task-title').value = t.title;
+                    document.getElementById('task-due').value = t.due || '';
+                    document.getElementById('task-priority').value = t.priority;
+                    document.getElementById('task-desc').value = t.desc || '';
+                    populateCourseDropdown(t.courseId, isLocked);
+                }
+            } else {
+                title.innerText = 'สั่งงาน / การบ้านใหม่';
+                document.getElementById('task-id').value = '';
+                populateCourseDropdown(preselectedCourseId || (courses[0] ? courses[0].id : null), isLocked);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+            
+            // If opened from Inspector, return back to Inspector view seamlessly
+            if (openedTaskModalFromInspector && activeInspectorCourseId) {
+                openedTaskModalFromInspector = false;
+                openInspectorModal(activeInspectorCourseId);
+            }
+        }
+
+        function saveTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('task-id').value;
+            const courseId = document.getElementById('task-course-id').value;
+            const title = document.getElementById('task-title').value.trim();
+            const due = document.getElementById('task-due').value;
+            const priority = document.getElementById('task-priority').value;
+            const desc = document.getElementById('task-desc').value.trim();
+
+            if (!courseId) {
+                showToast('กรุณาเลือกรายวิชา', true);
+                return;
+            }
+
+            if (id) {
+                const idx = tasks.findIndex(t => t.id === id);
+                if (idx !== -1) {
+                    tasks[idx] = { ...tasks[idx], courseId, title, due, priority, desc };
+                    showToast('อัปเดตงานเรียบร้อย');
+                }
+            } else {
+                const newTask = {
+                    id: 't_' + Date.now(),
+                    courseId,
+                    title,
+                    due,
+                    priority,
+                    desc,
+                    completed: false
+                };
+                tasks.push(newTask);
+                showToast('เพิ่มงานใหม่เรียบร้อยแล้ว');
+            }
+
+            saveToLocalStorage();
+            renderCourses();
+            closeTaskModal();
+        }
+
+        // --- Inspector Modal Logic (🔍 หน้าต่างตรวจสอบรายวิชา) ---
+        function openInspectorModal(courseId) {
+            activeInspectorCourseId = courseId;
+            selectedTaskIds.clear();
+            inspectorFilter = 'pending'; // Default tab
+
+            const course = courses.find(c => c.id === courseId);
+            if (!course) return;
+
+            // Set Inspector Header Data
+            document.getElementById('insp-title').innerText = course.name;
+            document.getElementById('insp-sub').innerText = `หน่วยกิต: ${course.credits} | เกรด: ${course.grade === 'pending' ? 'N/A' : course.grade} ${course.teacher ? '| ' + course.teacher : ''}`;
+            
+            const badgeType = document.getElementById('insp-badge-type');
+            if (course.type === 'core') {
+                badgeType.className = 'bg-blue-500/20 text-blue-200 text-[10px] px-2 py-0.5 rounded border border-blue-400/30';
+                badgeType.innerText = 'วิชาพื้นฐาน';
+            } else {
+                badgeType.className = 'bg-purple-500/20 text-purple-200 text-[10px] px-2 py-0.5 rounded border border-purple-400/30';
+                badgeType.innerText = 'วิชาเพิ่มเติม';
+            }
+
+            document.getElementById('insp-badge-cat').innerText = course.category;
+
+            renderInspectorTasks();
+            document.getElementById('inspector-modal').classList.remove('hidden');
+        }
+
+        function closeInspectorModal() {
+            document.getElementById('inspector-modal').classList.add('hidden');
+            activeInspectorCourseId = null;
+            selectedTaskIds.clear();
+        }
+
+        function setInspectorFilter(filterType) {
+            inspectorFilter = filterType;
+            selectedTaskIds.clear();
+            renderInspectorTasks();
+        }
+
+        function renderInspectorTasks() {
+            if (!activeInspectorCourseId) return;
+
+            const courseTasks = tasks.filter(t => t.courseId === activeInspectorCourseId);
+            const pendingTasks = courseTasks.filter(t => !t.completed);
+            const completedTasks = courseTasks.filter(t => t.completed);
+
+            document.getElementById('insp-count-pending').innerText = pendingTasks.length;
+            document.getElementById('insp-count-completed').innerText = completedTasks.length;
+
+            // Toggle Tab UI
+            const btnPending = document.getElementById('filter-btn-pending');
+            const btnCompleted = document.getElementById('filter-btn-completed');
+            if (inspectorFilter === 'pending') {
+                btnPending.className = 'px-2.5 py-1 rounded-md transition font-semibold bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 shadow-sm';
+                btnCompleted.className = 'px-2.5 py-1 rounded-md transition font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200';
+            } else {
+                btnCompleted.className = 'px-2.5 py-1 rounded-md transition font-semibold bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 shadow-sm';
+                btnPending.className = 'px-2.5 py-1 rounded-md transition font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200';
+            }
+
+            const currentList = inspectorFilter === 'pending' ? pendingTasks : completedTasks;
+            const container = document.getElementById('inspector-task-list');
+            container.innerHTML = '';
+
+            // Update Batch Delete Button Visibility
+            updateBatchDeleteUI();
+
+            if (currentList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 dark:text-slate-500">
+                        <i class="fa-solid fa-clipboard-check text-3xl mb-2 text-slate-300 dark:text-slate-600"></i>
+                        <p class="text-xs">ไม่มีรายการงานที่ ${inspectorFilter === 'pending' ? 'ยังไม่เสร็จ' : 'เสร็จแล้ว'}</p>
+                    </div>
+                `;
+                document.getElementById('select-all-checkbox').checked = false;
+                return;
+            }
+
+            // Uncheck Select All if not all selected
+            const allSelected = currentList.every(t => selectedTaskIds.has(t.id));
+            document.getElementById('select-all-checkbox').checked = allSelected && currentList.length > 0;
+
+            currentList.forEach(task => {
+                const item = document.createElement('div');
+                const isSelected = selectedTaskIds.has(task.id);
+
+                // Priority Badge Colors
+                let prioBadge = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+                let prioText = 'ปกติ';
+                if (task.priority === 'low') { prioBadge = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'; prioText = 'ต่ำ'; }
+                else if (task.priority === 'high') { prioBadge = 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300'; prioText = 'สูง'; }
+                else if (task.priority === 'urgent') { prioBadge = 'bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-300 font-bold'; prioText = 'ด่วนที่สุด ⚠️'; }
+
+                item.className = `p-3 rounded-xl border ${isSelected ? 'border-blue-400 dark:border-blue-500 bg-blue-50/40 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'} transition hover:border-slate-300 dark:hover:border-slate-600 flex items-start gap-2.5 group`;
+                
+                item.innerHTML = `
+                    <!-- Selection Checkbox -->
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleTaskSelection('${task.id}', this.checked)" class="mt-1 rounded text-blue-600 focus:ring-0 w-4 h-4 cursor-pointer bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+
+                    <!-- Content (Click to Toggle Done) -->
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="toggleTaskComplete('${task.id}')">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs font-semibold ${task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}">
+                                ${escapeHtml(task.title)}
+                            </span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded ${prioBadge}">${prioText}</span>
+                        </div>
+                        ${task.desc ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">${escapeHtml(task.desc)}</p>` : ''}
+                        ${task.due ? `<p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1"><i class="fa-regular fa-calendar"></i> กำหนดส่ง: ${task.due}</p>` : ''}
+                    </div>
+
+                    <!-- Individual Actions -->
+                    <div class="flex items-center gap-1 opacity-80 group-hover:opacity-100">
+                        <button onclick="openTaskModal('${activeInspectorCourseId}', true, '${task.id}')" title="แก้ไข" class="p-1 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 text-xs">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deleteSingleTask('${task.id}')" title="ลบ" class="p-1 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- Task Actions in Inspector ---
+        function toggleTaskComplete(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                saveToLocalStorage();
+                renderCourses();
+                renderInspectorTasks();
+                showToast(task.completed ? 'ทำรายการงานเสร็จแล้ว 🎉' : 'ย้ายกลับมายังรายการที่ยังไม่เสร็จ');
+            }
+        }
+
+        function toggleTaskSelection(taskId, isChecked) {
+            if (isChecked) {
+                selectedTaskIds.add(taskId);
+            } else {
+                selectedTaskIds.delete(taskId);
+            }
+            renderInspectorTasks();
+        }
+
+        function toggleSelectAllTasks(isChecked) {
+            const courseTasks = tasks.filter(t => t.courseId === activeInspectorCourseId);
+            const currentList = inspectorFilter === 'pending' 
+                ? courseTasks.filter(t => !t.completed) 
+                : courseTasks.filter(t => t.completed);
+
+            if (isChecked) {
+                currentList.forEach(t => selectedTaskIds.add(t.id));
+            } else {
+                selectedTaskIds.clear();
+            }
+            renderInspectorTasks();
+        }
+
+        function updateBatchDeleteUI() {
+            const btn = document.getElementById('batch-delete-btn');
+            const countLabel = document.getElementById('selected-count');
+            if (selectedTaskIds.size > 0) {
+                btn.classList.remove('hidden');
+                countLabel.innerText = selectedTaskIds.size;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+    
+        function deleteSelectedTasks() {
+            if (selectedTaskIds.size === 0) return;
+            
+            const count = selectedTaskIds.size;
+            tasks = tasks.filter(t => !selectedTaskIds.has(t.id));
+            selectedTaskIds.clear();
+            
+            saveToLocalStorage();
+            renderCourses();
+            renderInspectorTasks();
+            showToast(`ลบงานจำนวน ${count} รายการเรียบร้อยแล้ว`);
+        }
+
+        function deleteSingleTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+            selectedTaskIds.delete(taskId);
+            
+            saveToLocalStorage();
+            renderCourses();
+            renderInspectorTasks();
+            showToast('ลบรายการงานแล้ว');
+        }
+
+        // --- Toast System ---
+        let toastTimeout;
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toast-msg');
+            const icon = document.getElementById('toast-icon');
+
+            msg.innerText = message;
+            if (isError) {
+                icon.className = 'fa-solid fa-circle-exclamation text-amber-400';
+            } else {
+                icon.className = 'fa-solid fa-circle-check text-emerald-400';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Helper for Safety
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
